@@ -1,0 +1,25 @@
+{
+  "api": {
+    "name": "PolarSdkPlugin",
+    "slug": "polarsdkplugin",
+    "docs": "",
+    "tags": [],
+    "methods": [
+      {
+        "name": "connectPolar",
+        "signature": "() => Promise<{ value: boolean; }>",
+        "parameters": [],
+        "returns": "Promise<{ value: boolean; }>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "connectpolar"
+      }
+    ],
+    "properties": []
+  },
+  "interfaces": [],
+  "enums": [],
+  "typeAliases": [],
+  "pluginConfigs": []
+}
