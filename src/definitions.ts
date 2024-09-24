@@ -1,3 +1,3 @@
 export interface PolarSdkPlugin {
-  echo(options: { value: string }): Promise<{ value: string }>;
+  connectPolar(): Promise<{ value: boolean }>;
 }

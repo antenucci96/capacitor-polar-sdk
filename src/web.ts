@@ -3,8 +3,9 @@ import { WebPlugin } from '@capacitor/core';
 import type { PolarSdkPlugin } from './definitions';
 
 export class PolarSdkWeb extends WebPlugin implements PolarSdkPlugin {
-  async echo(options: { value: string }): Promise<{ value: string }> {
-    console.log('ECHO', options);
-    return options;
+  connectPolar(): Promise<{ value: boolean }> {
+    // Logica per simulare la connessione
+    console.log('Connecting to Polar device');
+    return Promise.resolve({ value: true });
   }
 }

@@ -13,24 +13,20 @@ npx cap sync
 
 <docgen-index>
 
-* [`echo(...)`](#echo)
+* [`connectPolar()`](#connectpolar)
 
 </docgen-index>
 
 <docgen-api>
 <!--Update the source file JSDoc comments and rerun docgen to update the docs below-->
 
-### echo(...)
+### connectPolar()
 
 ```typescript
-echo(options: { value: string; }) => Promise<{ value: string; }>
+connectPolar() => Promise<{ value: boolean; }>
 ```
 
-| Param         | Type                            |
-| ------------- | ------------------------------- |
-| **`options`** | <code>{ value: string; }</code> |
-
-**Returns:** <code>Promise&lt;{ value: string; }&gt;</code>
+**Returns:** <code>Promise&lt;{ value: boolean; }&gt;</code>
 
 --------------------
 
