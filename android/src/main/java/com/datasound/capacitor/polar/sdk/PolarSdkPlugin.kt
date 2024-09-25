@@ -1,5 +1,6 @@
 package com.datasound.capacitor.polar.sdk
 
+import android.R.attr.value
 import android.util.Log
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
@@ -14,6 +15,7 @@ import com.polar.sdk.api.model.PolarDeviceInfo
 import com.polar.sdk.api.model.PolarHrData
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.Disposable
+
 
 @CapacitorPlugin(name = "PolarSdk")
 class PolarSdkPlugin : Plugin() {
@@ -57,6 +59,9 @@ class PolarSdkPlugin : Plugin() {
                 Log.d(TAG, "CONNECTED: ${polarDeviceInfo.deviceId}")
                 deviceId = polarDeviceInfo.deviceId
                 streamHR(deviceId)
+                val ret = JSObject()
+                ret.put("value", true)
+                call.resolve(ret)
             }
 
             override fun deviceConnecting(polarDeviceInfo: PolarDeviceInfo) {
@@ -88,8 +93,6 @@ class PolarSdkPlugin : Plugin() {
                 { Log.d(TAG, "auto connect search complete") },
                 { throwable: Throwable -> Log.e(TAG, "" + throwable.toString()) }
             )
-
-        call.resolve()
     }
 
     private fun streamHR(deviceId: String) {

@@ -14,6 +14,9 @@ npx cap sync
 <docgen-index>
 
 * [`connectPolar()`](#connectpolar)
+* [`addListener('hrData', ...)`](#addlistenerhrdata-)
+* [`removeAllListeners()`](#removealllisteners)
+* [Interfaces](#interfaces)
 
 </docgen-index>
 
@@ -29,5 +32,40 @@ connectPolar() => Promise<{ value: boolean; }>
 **Returns:** <code>Promise&lt;{ value: boolean; }&gt;</code>
 
 --------------------
+
+
+### addListener('hrData', ...)
+
+```typescript
+addListener(eventName: 'hrData', data: any) => Promise<PluginListenerHandle>
+```
+
+| Param           | Type                  |
+| --------------- | --------------------- |
+| **`eventName`** | <code>'hrData'</code> |
+| **`data`**      | <code>any</code>      |
+
+**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
+
+--------------------
+
+
+### removeAllListeners()
+
+```typescript
+removeAllListeners() => Promise<void>
+```
+
+--------------------
+
+
+### Interfaces
+
+
+#### PluginListenerHandle
+
+| Prop         | Type                                      |
+| ------------ | ----------------------------------------- |
+| **`remove`** | <code>() =&gt; Promise&lt;void&gt;</code> |
 
 </docgen-api>

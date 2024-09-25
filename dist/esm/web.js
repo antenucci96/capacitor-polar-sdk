@@ -1,9 +1,7 @@
 import { WebPlugin } from '@capacitor/core';
 export class PolarSdkWeb extends WebPlugin {
     connectPolar() {
-        // Logica per simulare la connessione
-        console.log('Connecting to Polar device');
-        return Promise.resolve({ value: true });
+        throw new Error('Method not implemented on web.');
     }
 }
 //# sourceMappingURL=web.js.map

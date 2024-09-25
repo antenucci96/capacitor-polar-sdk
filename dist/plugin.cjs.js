@@ -10,9 +10,7 @@ const PolarSdk = core.registerPlugin('PolarSdk', {
 
 class PolarSdkWeb extends core.WebPlugin {
     connectPolar() {
-        // Logica per simulare la connessione
-        console.log('Connecting to Polar device');
-        return Promise.resolve({ value: true });
+        throw new Error('Method not implemented on web.');
     }
 }
 
