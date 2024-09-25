@@ -12,6 +12,21 @@ class PolarSdkWeb extends core.WebPlugin {
     connectPolar() {
         throw new Error('Method not implemented on web.');
     }
+    streamHR() {
+        throw new Error('Method not implemented on web.');
+    }
+    streamEcg() {
+        throw new Error('Method not implemented on web.');
+    }
+    stopEcg() {
+        throw new Error('Method not implemented on web.');
+    }
+    stopHR() {
+        throw new Error('Method not implemented on web.');
+    }
+    disconnectPolar() {
+        throw new Error('Method not implemented on web.');
+    }
 }
 
 var web = /*#__PURE__*/Object.freeze({

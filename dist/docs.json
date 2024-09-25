@@ -7,13 +7,63 @@
     "methods": [
       {
         "name": "connectPolar",
+        "signature": "() => Promise<{ value: boolean; message?: string; }>",
+        "parameters": [],
+        "returns": "Promise<{ value: boolean; message?: string | undefined; }>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "connectpolar"
+      },
+      {
+        "name": "streamHR",
         "signature": "() => Promise<{ value: boolean; }>",
         "parameters": [],
         "returns": "Promise<{ value: boolean; }>",
         "tags": [],
         "docs": "",
         "complexTypes": [],
-        "slug": "connectpolar"
+        "slug": "streamhr"
+      },
+      {
+        "name": "streamEcg",
+        "signature": "() => Promise<{ value: boolean; }>",
+        "parameters": [],
+        "returns": "Promise<{ value: boolean; }>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "streamecg"
+      },
+      {
+        "name": "stopHR",
+        "signature": "() => Promise<{ value: boolean; }>",
+        "parameters": [],
+        "returns": "Promise<{ value: boolean; }>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "stophr"
+      },
+      {
+        "name": "stopEcg",
+        "signature": "() => Promise<{ value: boolean; }>",
+        "parameters": [],
+        "returns": "Promise<{ value: boolean; }>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "stopecg"
+      },
+      {
+        "name": "disconnectPolar",
+        "signature": "() => Promise<{ value: boolean; }>",
+        "parameters": [],
+        "returns": "Promise<{ value: boolean; }>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "disconnectpolar"
       },
       {
         "name": "addListener",
@@ -37,6 +87,29 @@
           "PluginListenerHandle"
         ],
         "slug": "addlistenerhrdata-"
+      },
+      {
+        "name": "addListener",
+        "signature": "(eventName: 'ecgData', data: any) => Promise<PluginListenerHandle>",
+        "parameters": [
+          {
+            "name": "eventName",
+            "docs": "",
+            "type": "'ecgData'"
+          },
+          {
+            "name": "data",
+            "docs": "",
+            "type": "any"
+          }
+        ],
+        "returns": "Promise<PluginListenerHandle>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [
+          "PluginListenerHandle"
+        ],
+        "slug": "addlistenerecgdata-"
       },
       {
         "name": "removeAllListeners",

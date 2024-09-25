@@ -14,7 +14,13 @@ npx cap sync
 <docgen-index>
 
 * [`connectPolar()`](#connectpolar)
+* [`streamHR()`](#streamhr)
+* [`streamEcg()`](#streamecg)
+* [`stopHR()`](#stophr)
+* [`stopEcg()`](#stopecg)
+* [`disconnectPolar()`](#disconnectpolar)
 * [`addListener('hrData', ...)`](#addlistenerhrdata-)
+* [`addListener('ecgData', ...)`](#addlistenerecgdata-)
 * [`removeAllListeners()`](#removealllisteners)
 * [Interfaces](#interfaces)
 
@@ -26,7 +32,62 @@ npx cap sync
 ### connectPolar()
 
 ```typescript
-connectPolar() => Promise<{ value: boolean; }>
+connectPolar() => Promise<{ value: boolean; message?: string; }>
+```
+
+**Returns:** <code>Promise&lt;{ value: boolean; message?: string; }&gt;</code>
+
+--------------------
+
+
+### streamHR()
+
+```typescript
+streamHR() => Promise<{ value: boolean; }>
+```
+
+**Returns:** <code>Promise&lt;{ value: boolean; }&gt;</code>
+
+--------------------
+
+
+### streamEcg()
+
+```typescript
+streamEcg() => Promise<{ value: boolean; }>
+```
+
+**Returns:** <code>Promise&lt;{ value: boolean; }&gt;</code>
+
+--------------------
+
+
+### stopHR()
+
+```typescript
+stopHR() => Promise<{ value: boolean; }>
+```
+
+**Returns:** <code>Promise&lt;{ value: boolean; }&gt;</code>
+
+--------------------
+
+
+### stopEcg()
+
+```typescript
+stopEcg() => Promise<{ value: boolean; }>
+```
+
+**Returns:** <code>Promise&lt;{ value: boolean; }&gt;</code>
+
+--------------------
+
+
+### disconnectPolar()
+
+```typescript
+disconnectPolar() => Promise<{ value: boolean; }>
 ```
 
 **Returns:** <code>Promise&lt;{ value: boolean; }&gt;</code>
@@ -44,6 +105,22 @@ addListener(eventName: 'hrData', data: any) => Promise<PluginListenerHandle>
 | --------------- | --------------------- |
 | **`eventName`** | <code>'hrData'</code> |
 | **`data`**      | <code>any</code>      |
+
+**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
+
+--------------------
+
+
+### addListener('ecgData', ...)
+
+```typescript
+addListener(eventName: 'ecgData', data: any) => Promise<PluginListenerHandle>
+```
+
+| Param           | Type                   |
+| --------------- | ---------------------- |
+| **`eventName`** | <code>'ecgData'</code> |
+| **`data`**      | <code>any</code>       |
 
 **Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
 
