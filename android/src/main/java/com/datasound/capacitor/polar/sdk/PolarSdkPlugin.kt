@@ -1,13 +1,25 @@
 package com.datasound.capacitor.polar.sdk
 
+import android.Manifest
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothManager
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat.getSystemService
 import com.getcapacitor.JSObject
+import com.getcapacitor.PermissionState
 import com.getcapacitor.Plugin
 import com.getcapacitor.PluginCall
 import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
+import com.getcapacitor.annotation.Permission
+import com.getcapacitor.annotation.PermissionCallback
 import com.polar.androidcommunications.api.ble.model.DisInfo
 import com.polar.sdk.api.PolarBleApi
 import com.polar.sdk.api.PolarBleApiCallback
@@ -22,10 +34,49 @@ import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.disposables.Disposable
 import java.util.Calendar
 import java.util.Date
-import java.util.concurrent.TimeUnit
+import java.util.TimeZone
 
+const val ERROR_BLE_NOT_AVAILABLE = "bluetooth.notAvailable"
+const val ERROR_BLUETOOTH_NOT_ENABLED = "bluetooth.notEnabled"
+const val ERROR_PERMISSIONS_DENIED = "permissions.notGranted"
+const val ERROR_CONNECTION_TIMED_OUT = "connection.timedOut"
+const val seconds_from_epoch_to_2000 = 946684800
 
-@CapacitorPlugin(name = "PolarSdk")
+@CapacitorPlugin(name = "PolarSdk",
+    permissions = [
+        Permission(
+            strings = [
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+            ], alias = "ACCESS_COARSE_LOCATION"
+        ),
+        Permission(
+            strings = [
+                Manifest.permission.ACCESS_FINE_LOCATION,
+            ], alias = "ACCESS_FINE_LOCATION"
+        ),
+        Permission(
+            strings = [
+                Manifest.permission.BLUETOOTH,
+            ], alias = "BLUETOOTH"
+        ),
+        Permission(
+            strings = [
+                Manifest.permission.BLUETOOTH_ADMIN,
+            ], alias = "BLUETOOTH_ADMIN"
+        ),
+        Permission(
+            strings = [
+                // Manifest.permission.BLUETOOTH_SCAN
+                "android.permission.BLUETOOTH_SCAN",
+            ], alias = "BLUETOOTH_SCAN"
+        ),
+        Permission(
+            strings = [
+                // Manifest.permission.BLUETOOTH_ADMIN
+                "android.permission.BLUETOOTH_CONNECT",
+            ], alias = "BLUETOOTH_CONNECT"
+        ),
+    ])
 class PolarSdkPlugin : Plugin() {
     companion object {
         private const val TAG = "HRActivity"
@@ -35,6 +86,8 @@ class PolarSdkPlugin : Plugin() {
     private var autoConnectDisposable: Disposable? = null
     private var ecgDisposable: Disposable? = null
     private var deviceId = ""
+    private var bluetoothAdapter: BluetoothAdapter? = null
+    private var aliases: Array<String> = arrayOf()
 
     private val api: PolarBleApi by lazy {
         // Notice all features are enabled
@@ -64,7 +117,6 @@ class PolarSdkPlugin : Plugin() {
             override fun deviceConnected(polarDeviceInfo: PolarDeviceInfo) {
                 Log.d(TAG, "CONNECTED: ${polarDeviceInfo.deviceId}")
                 deviceId = polarDeviceInfo.deviceId
-                setTime(polarDeviceInfo.deviceId)
             }
 
             override fun deviceConnecting(polarDeviceInfo: PolarDeviceInfo) {
@@ -83,23 +135,66 @@ class PolarSdkPlugin : Plugin() {
                 Log.d(TAG, "BATTERY LEVEL: $level")
             }
 
-            override fun bleSdkFeatureReady(identifier: String, feature: PolarBleApi.PolarBleSdkFeature) {
+            override fun bleSdkFeatureReady(
+                identifier: String,
+                feature: PolarBleApi.PolarBleSdkFeature
+            ) {
                 Log.d(TAG, "feature ready $feature")
             }
 
         })
     }
 
+
     @PluginMethod
     fun connectPolar(call: PluginCall) {
+        aliases = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            arrayOf(
+                "BLUETOOTH_SCAN",
+                "BLUETOOTH_CONNECT",
+            )
+        } else {
+            arrayOf(
+                "ACCESS_COARSE_LOCATION",
+                "ACCESS_FINE_LOCATION",
+                "BLUETOOTH",
+                "BLUETOOTH_ADMIN",
+            )
+        }
+        requestPermissionForAliases(aliases, call, "checkPermission")
+    }
+
+    @PermissionCallback
+    private fun checkPermission(call: PluginCall) {
+        Log.i(TAG, "checkPermission")
+        val granted: List<Boolean> = aliases.map { alias ->
+            getPermissionState(alias) == PermissionState.GRANTED
+        }
+        // all have to be true
+        if (granted.all { it }) {
+            completeConnection(call)
+        } else {
+            call.reject(ERROR_PERMISSIONS_DENIED)
+        }
+    }
+
+    private fun completeConnection(call: PluginCall) {
+        bluetoothAdapter =
+            (activity.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
+
+        if (bluetoothAdapter == null) {
+            call.reject(ERROR_BLE_NOT_AVAILABLE)
+            return
+        } else if (!bluetoothAdapter!!.isEnabled) {
+            Log.i(TAG, "connectPolar: Bluetooth is not enabled")
+            call.reject(ERROR_BLUETOOTH_NOT_ENABLED)
+        }
+
         val timeoutHandler = Handler(Looper.getMainLooper())
         val timeoutRunnable = Runnable {
             if (autoConnectDisposable != null) {
                 autoConnectDisposable?.dispose()
-                val error = JSObject()
-                error.put("value", false)
-                error.put("message", "Connection timed out")
-                call.reject("Connection timed out")
+                call.reject(ERROR_CONNECTION_TIMED_OUT)
             }
         }
 
@@ -124,9 +219,6 @@ class PolarSdkPlugin : Plugin() {
                     Log.e(TAG, "Connection error: ${throwable.message}")
                     timeoutHandler.removeCallbacks(timeoutRunnable) // annulla il timeout in caso di errore
 
-                    val error = JSObject()
-                    error.put("value", false)
-                    error.put("message", "Connection failed")
                     call.reject("Connection failed")
                 }
             )
@@ -180,9 +272,10 @@ class PolarSdkPlugin : Plugin() {
                     { polarEcgData: PolarEcgData ->
                         for (data in polarEcgData.samples) {
                             Log.d(TAG, "    yV: ${data.voltage} timeStamp: ${data.timeStamp}")
+                            val timestampConverted = data.timeStamp
                             val resData = JSObject()
                             resData.put("yV", data.voltage)
-                            resData.put("timestamp", data.timeStamp)
+                            resData.put("timestamp", timestampConverted)
                             notifyListeners("ecgData", resData)
                             val result = JSObject()
                             result.put("value", true)
@@ -228,6 +321,7 @@ class PolarSdkPlugin : Plugin() {
 
     private fun setTime(deviceId: String) {
         val calendar = Calendar.getInstance()
+        calendar.timeZone = TimeZone.getTimeZone("GMT")
         calendar.time = Date()
         api.setLocalTime(deviceId, calendar)
             .observeOn(AndroidSchedulers.mainThread())
