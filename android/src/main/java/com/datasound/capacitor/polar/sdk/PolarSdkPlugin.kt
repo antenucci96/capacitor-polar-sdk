@@ -198,7 +198,7 @@ class PolarSdkPlugin : Plugin() {
             }
         }
 
-        // Imposta il timeout a 10 secondi
+        // 10 second timeout
         timeoutHandler.postDelayed(timeoutRunnable, 10000)
 
         if (autoConnectDisposable != null) {
@@ -209,7 +209,6 @@ class PolarSdkPlugin : Plugin() {
             .subscribe(
                 {
                     Log.d(TAG, "Connection attempt started")
-                    // Se la connessione è completata, annulla il timeout
                     timeoutHandler.removeCallbacks(timeoutRunnable)
                     val result = JSObject()
                     result.put("value", true)
@@ -217,7 +216,7 @@ class PolarSdkPlugin : Plugin() {
                 },
                 { throwable: Throwable ->
                     Log.e(TAG, "Connection error: ${throwable.message}")
-                    timeoutHandler.removeCallbacks(timeoutRunnable) // annulla il timeout in caso di errore
+                    timeoutHandler.removeCallbacks(timeoutRunnable)
 
                     call.reject("Connection failed")
                 }
@@ -365,7 +364,7 @@ class PolarSdkPlugin : Plugin() {
             .toFlowable()
             .flatMap { sensorSettings: android.util.Pair<PolarSensorSetting, PolarSensorSetting> ->
 
-                Flowable.just(sensorSettings.first) // Restituiamo il primo set come risultato
+                Flowable.just(sensorSettings.first)
             }
     }
 
