@@ -40,6 +40,8 @@ const val ERROR_BLE_NOT_AVAILABLE = "bluetooth.notAvailable"
 const val ERROR_BLUETOOTH_NOT_ENABLED = "bluetooth.notEnabled"
 const val ERROR_PERMISSIONS_DENIED = "permissions.notGranted"
 const val ERROR_CONNECTION_TIMED_OUT = "connection.timedOut"
+const val ERROR_STREAM_ECG_FAILED = "stream.ecg.failed"
+const val ERROR_STREAM_HR_FAILED = "stream.hr.failed"
 
 @CapacitorPlugin(
     name = "PolarSdk",
@@ -246,6 +248,10 @@ class PolarSdkPlugin : Plugin() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                     { hrData: PolarHrData ->
+                        val result = JSObject()
+                        result.put("value", true)
+                        call.resolve(result)
+
                         for (sample in hrData.samples) {
                             Log.d(TAG, "HR bpm: ${sample.hr} rrs: ${sample.rrsMs}")
                             // Set timestamp
@@ -256,16 +262,15 @@ class PolarSdkPlugin : Plugin() {
                             data.put("rrs", sample.rrsMs)
                             data.put("timestamp", currentTimestamp)
                             notifyListeners("hrData", data)
-                            val result = JSObject()
-                            result.put("value", true)
-                            call.resolve(result)
                         }
                     },
                     { error: Throwable ->
                         Log.e(TAG, "HR stream failed. Reason: $error")
-                        call.reject(error.toString())
+                        call.reject(ERROR_STREAM_HR_FAILED)
                     },
-                    { Log.d(TAG, "HR stream complete") }
+                    {
+                        Log.d(TAG, "HR stream complete")
+                    }
                 )
         } else {
             hrDisposable?.dispose()
@@ -285,22 +290,24 @@ class PolarSdkPlugin : Plugin() {
                 }
                 .subscribe(
                     { polarEcgData: PolarEcgData ->
+                        val result = JSObject()
+                        result.put("value", true)
+                        call.resolve(result)
                         for (data in polarEcgData.samples) {
                             Log.d(TAG, "yV: ${data.voltage} timeStamp: ${data.timeStamp}")
                             val resData = JSObject()
                             resData.put("yV", data.voltage)
                             resData.put("timestamp", data.timeStamp)
                             notifyListeners("ecgData", resData)
-                            val result = JSObject()
-                            result.put("value", true)
-                            call.resolve(result)
                         }
                     },
                     { error: Throwable ->
                         Log.e(TAG, "ECG stream failed. Reason $error")
-                        call.reject(error.toString())
+                        call.reject(ERROR_STREAM_ECG_FAILED)
                     },
-                    { Log.d(TAG, "ECG stream complete") }
+                    {
+                        Log.d(TAG, "ECG stream complete")
+                    }
                 )
         } else {
             //stops streaming if it is "running"
@@ -372,6 +379,7 @@ class PolarSdkPlugin : Plugin() {
             } else {
                 Log.d(TAG, "Feature " + feature + " available settings " + available.settings)
                 Log.d(TAG, "Feature " + feature + " all settings " + all.settings)
+
                 return@zip android.util.Pair(available, all)
             }
         }
