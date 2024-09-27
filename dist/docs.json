@@ -112,6 +112,29 @@
         "slug": "addlistenerecgdata-"
       },
       {
+        "name": "addListener",
+        "signature": "(eventName: 'disconnected', data: any) => Promise<PluginListenerHandle>",
+        "parameters": [
+          {
+            "name": "eventName",
+            "docs": "",
+            "type": "'disconnected'"
+          },
+          {
+            "name": "data",
+            "docs": "",
+            "type": "any"
+          }
+        ],
+        "returns": "Promise<PluginListenerHandle>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [
+          "PluginListenerHandle"
+        ],
+        "slug": "addlistenerdisconnected-"
+      },
+      {
         "name": "removeAllListeners",
         "signature": "() => Promise<void>",
         "parameters": [],

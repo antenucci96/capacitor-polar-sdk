@@ -21,5 +21,6 @@ export interface PolarSdkPlugin {
     }>;
     addListener(eventName: 'hrData', data: any): Promise<PluginListenerHandle>;
     addListener(eventName: 'ecgData', data: any): Promise<PluginListenerHandle>;
+    addListener(eventName: 'disconnected', data: any): Promise<PluginListenerHandle>;
     removeAllListeners(): Promise<void>;
 }

@@ -23,5 +23,10 @@ export interface PolarSdkPlugin {
     data: any,
   ): Promise<PluginListenerHandle>;
 
+  addListener(
+    eventName: 'disconnected',
+    data: any,
+  ): Promise<PluginListenerHandle>;
+
   removeAllListeners(): Promise<void>;
 }

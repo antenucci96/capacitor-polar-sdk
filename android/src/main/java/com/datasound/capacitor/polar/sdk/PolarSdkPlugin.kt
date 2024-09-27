@@ -4,14 +4,10 @@ import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat.getSystemService
 import com.getcapacitor.JSObject
 import com.getcapacitor.PermissionState
 import com.getcapacitor.Plugin
@@ -32,6 +28,10 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.disposables.Disposable
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Date
 import java.util.TimeZone
@@ -40,9 +40,9 @@ const val ERROR_BLE_NOT_AVAILABLE = "bluetooth.notAvailable"
 const val ERROR_BLUETOOTH_NOT_ENABLED = "bluetooth.notEnabled"
 const val ERROR_PERMISSIONS_DENIED = "permissions.notGranted"
 const val ERROR_CONNECTION_TIMED_OUT = "connection.timedOut"
-const val seconds_from_epoch_to_2000 = 946684800
 
-@CapacitorPlugin(name = "PolarSdk",
+@CapacitorPlugin(
+    name = "PolarSdk",
     permissions = [
         Permission(
             strings = [
@@ -76,7 +76,8 @@ const val seconds_from_epoch_to_2000 = 946684800
                 "android.permission.BLUETOOTH_CONNECT",
             ], alias = "BLUETOOTH_CONNECT"
         ),
-    ])
+    ]
+)
 class PolarSdkPlugin : Plugin() {
     companion object {
         private const val TAG = "HRActivity"
@@ -88,6 +89,7 @@ class PolarSdkPlugin : Plugin() {
     private var deviceId = ""
     private var bluetoothAdapter: BluetoothAdapter? = null
     private var aliases: Array<String> = arrayOf()
+    private var disInfoDeferred: CompletableDeferred<DisInfo>? = null
 
     private val api: PolarBleApi by lazy {
         // Notice all features are enabled
@@ -125,10 +127,13 @@ class PolarSdkPlugin : Plugin() {
 
             override fun deviceDisconnected(polarDeviceInfo: PolarDeviceInfo) {
                 Log.d(TAG, "DISCONNECTED: ${polarDeviceInfo.deviceId}")
+                notifyListeners("disconnected", JSObject())
             }
 
             override fun disInformationReceived(identifier: String, disInfo: DisInfo) {
                 Log.d(TAG, "DIS INFO: $disInfo")
+                //Wait this callback to resolve connection
+                disInfoDeferred?.complete(disInfo)
             }
 
             override fun batteryLevelReceived(identifier: String, level: Int) {
@@ -172,12 +177,14 @@ class PolarSdkPlugin : Plugin() {
         }
         // all have to be true
         if (granted.all { it }) {
+            disInfoDeferred = CompletableDeferred()
             completeConnection(call)
         } else {
             call.reject(ERROR_PERMISSIONS_DENIED)
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     private fun completeConnection(call: PluginCall) {
         bluetoothAdapter =
             (activity.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
@@ -198,26 +205,34 @@ class PolarSdkPlugin : Plugin() {
             }
         }
 
-        // 10 second timeout
+        // try to connect to device for 10 seconds
         timeoutHandler.postDelayed(timeoutRunnable, 10000)
 
         if (autoConnectDisposable != null) {
             autoConnectDisposable?.dispose()
         }
 
-        autoConnectDisposable = api.autoConnectToDevice(-60, "180D",  "H10")
+        autoConnectDisposable = api.autoConnectToDevice(-60, "180D", "H10")
             .subscribe(
                 {
                     Log.d(TAG, "Connection attempt started")
                     timeoutHandler.removeCallbacks(timeoutRunnable)
-                    val result = JSObject()
-                    result.put("value", true)
-                    call.resolve(result)
+                    GlobalScope.launch {
+                        try {
+                            val disInfo =
+                                disInfoDeferred?.await()  // Wait until disInfo is received
+                            Log.i(TAG, "disInfo: $disInfo")
+                            val result = JSObject()
+                            result.put("value", true)
+                            call.resolve(result)
+                        } catch (e: Exception) {
+                            call.reject("Connection failed")
+                        }
+                    }
                 },
                 { throwable: Throwable ->
                     Log.e(TAG, "Connection error: ${throwable.message}")
                     timeoutHandler.removeCallbacks(timeoutRunnable)
-
                     call.reject("Connection failed")
                 }
             )
@@ -233,6 +248,7 @@ class PolarSdkPlugin : Plugin() {
                     { hrData: PolarHrData ->
                         for (sample in hrData.samples) {
                             Log.d(TAG, "HR bpm: ${sample.hr} rrs: ${sample.rrsMs}")
+                            // Set timestamp
                             val currentTimestamp = System.currentTimeMillis()
                             // Send data to JS
                             val data = JSObject()
@@ -253,7 +269,7 @@ class PolarSdkPlugin : Plugin() {
                 )
         } else {
             hrDisposable?.dispose()
-            call.reject("error", "HR stream stopped")
+            call.reject("HR stream stopped")
         }
     }
 
@@ -270,11 +286,10 @@ class PolarSdkPlugin : Plugin() {
                 .subscribe(
                     { polarEcgData: PolarEcgData ->
                         for (data in polarEcgData.samples) {
-                            Log.d(TAG, "    yV: ${data.voltage} timeStamp: ${data.timeStamp}")
-                            val timestampConverted = data.timeStamp
+                            Log.d(TAG, "yV: ${data.voltage} timeStamp: ${data.timeStamp}")
                             val resData = JSObject()
                             resData.put("yV", data.voltage)
-                            resData.put("timestamp", timestampConverted)
+                            resData.put("timestamp", data.timeStamp)
                             notifyListeners("ecgData", resData)
                             val result = JSObject()
                             result.put("value", true)
@@ -288,7 +303,7 @@ class PolarSdkPlugin : Plugin() {
                     { Log.d(TAG, "ECG stream complete") }
                 )
         } else {
-            // NOTE stops streaming if it is "running"
+            //stops streaming if it is "running"
             ecgDisposable?.dispose()
             call.reject("error", "HCG stream stopped")
         }
@@ -363,7 +378,6 @@ class PolarSdkPlugin : Plugin() {
             .observeOn(AndroidSchedulers.mainThread())
             .toFlowable()
             .flatMap { sensorSettings: android.util.Pair<PolarSensorSetting, PolarSensorSetting> ->
-
                 Flowable.just(sensorSettings.first)
             }
     }

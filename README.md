@@ -21,6 +21,7 @@ npx cap sync
 * [`disconnectPolar()`](#disconnectpolar)
 * [`addListener('hrData', ...)`](#addlistenerhrdata-)
 * [`addListener('ecgData', ...)`](#addlistenerecgdata-)
+* [`addListener('disconnected', ...)`](#addlistenerdisconnected-)
 * [`removeAllListeners()`](#removealllisteners)
 * [Interfaces](#interfaces)
 
@@ -121,6 +122,22 @@ addListener(eventName: 'ecgData', data: any) => Promise<PluginListenerHandle>
 | --------------- | ---------------------- |
 | **`eventName`** | <code>'ecgData'</code> |
 | **`data`**      | <code>any</code>       |
+
+**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
+
+--------------------
+
+
+### addListener('disconnected', ...)
+
+```typescript
+addListener(eventName: 'disconnected', data: any) => Promise<PluginListenerHandle>
+```
+
+| Param           | Type                        |
+| --------------- | --------------------------- |
+| **`eventName`** | <code>'disconnected'</code> |
+| **`data`**      | <code>any</code>            |
 
 **Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
 
