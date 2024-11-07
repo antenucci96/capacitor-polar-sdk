@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "CapacitorPolarSdk",
-    platforms: [.iOS(.v13)],
+    platforms: [.iOS(.v14)],
     products: [
         .library(
             name: "CapacitorPolarSdk",
