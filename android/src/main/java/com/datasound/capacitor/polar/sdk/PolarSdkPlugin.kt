@@ -283,6 +283,7 @@ class PolarSdkPlugin : Plugin() {
 
     @PluginMethod
     fun streamEcg(call: PluginCall) {
+        setTime(deviceId)
         val isDisposed = ecgDisposable?.isDisposed ?: true
         if (isDisposed) {
             Log.i(TAG, "streamEcg: isDisposed")
