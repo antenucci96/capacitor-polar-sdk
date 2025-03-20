@@ -1,6 +1,6 @@
 {
   "name": "capacitor-polar-sdk",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Ionic capacitor plugin to connect Polar H10 band to ionic app",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
