@@ -465,6 +465,7 @@ class PolarSdkPlugin : Plugin() {
                 val customSettings = PolarSensorSetting(
                     mapOf(
                         PolarSensorSetting.SettingType.SAMPLE_RATE to 50, // 50 Hz
+                        PolarSensorSetting.SettingType.RESOLUTION to 16,    // 16 bits
                         PolarSensorSetting.SettingType.RANGE to 4          // ±4g
                     )
                 )
