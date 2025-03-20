@@ -322,14 +322,10 @@ class PolarSdkPlugin : Plugin() {
     fun streamAcc(call: PluginCall) {
         val isDisposed = accDisposable?.isDisposed ?: true
         if (isDisposed) {
-            val customSettings = PolarSensorSetting(
-                mapOf(
-                    PolarSensorSetting.SettingType.SAMPLE_RATE to 50, // Imposta il sample rate a 50 Hz
-                    PolarSensorSetting.SettingType.RANGE to 4          // Imposta il range a ±4g
-                )
-            )
-
-            accDisposable = api.startAccStreaming(deviceId, customSettings)
+            accDisposable = requestStreamSettingsAcc(deviceId, PolarBleApi.PolarDeviceDataType.ACC)
+                .flatMap { settings: PolarSensorSetting ->
+                    api.startAccStreaming(deviceId, settings)
+                }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                     { polarAccelerometerData: PolarAccelerometerData ->
@@ -438,6 +434,49 @@ class PolarSdkPlugin : Plugin() {
                 Flowable.just(sensorSettings.first)
             }
     }
+
+
+    private fun requestStreamSettingsAcc(
+        identifier: String,
+        feature: PolarBleApi.PolarDeviceDataType
+    ): Flowable<PolarSensorSetting> {
+        Log.i(TAG, "requestStreamSettings: ")
+
+        val availableSettings = api.requestStreamSettings(identifier, feature)
+        val allSettings = api.requestFullStreamSettings(identifier, feature)
+            .onErrorReturn { error: Throwable ->
+                Log.w(
+                    TAG,
+                    "Full stream settings are not available for feature $feature. REASON: $error"
+                )
+                PolarSensorSetting(emptyMap())
+            }
+
+        return Single.zip(
+            availableSettings,
+            allSettings
+        ) { available: PolarSensorSetting, all: PolarSensorSetting ->
+            if (available.settings.isEmpty()) {
+                throw Throwable("Settings are not available")
+            } else {
+                Log.d(TAG, "Feature $feature available settings ${available.settings}")
+                Log.d(TAG, "Feature $feature all settings ${all.settings}")
+
+                val customSettings = PolarSensorSetting(
+                    mapOf(
+                        PolarSensorSetting.SettingType.SAMPLE_RATE to 50, // 50 Hz
+                        PolarSensorSetting.SettingType.RANGE to 4          // ±4g
+                    )
+                )
+
+                return@zip customSettings
+            }
+        }
+            .observeOn(AndroidSchedulers.mainThread())
+            .toFlowable()
+    }
+
+
 
     override fun handleOnDestroy() {
         hrDisposable?.dispose()
