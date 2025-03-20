@@ -283,7 +283,6 @@ class PolarSdkPlugin : Plugin() {
 
     @PluginMethod
     fun streamEcg(call: PluginCall) {
-        setTime(deviceId)
         val isDisposed = ecgDisposable?.isDisposed ?: true
         if (isDisposed) {
             Log.i(TAG, "streamEcg: isDisposed")
@@ -323,10 +322,14 @@ class PolarSdkPlugin : Plugin() {
     fun streamAcc(call: PluginCall) {
         val isDisposed = accDisposable?.isDisposed ?: true
         if (isDisposed) {
-            accDisposable = requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.ACC)
-                .flatMap { settings: PolarSensorSetting ->
-                    api.startAccStreaming(deviceId, settings)
-                }
+            val customSettings = PolarSensorSetting(
+                mapOf(
+                    PolarSensorSetting.SettingType.SAMPLE_RATE to 50, // Imposta il sample rate a 50 Hz
+                    PolarSensorSetting.SettingType.RANGE to 4          // Imposta il range a ±4g
+                )
+            )
+
+            accDisposable = api.startAccStreaming(deviceId, customSettings)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                     { polarAccelerometerData: PolarAccelerometerData ->
