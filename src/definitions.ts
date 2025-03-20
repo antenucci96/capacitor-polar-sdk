@@ -7,9 +7,13 @@ export interface PolarSdkPlugin {
 
   streamEcg(): Promise<{ value: boolean }>;
 
+  streamAcc(): Promise<{ value: boolean }>;
+
   stopHR(): Promise<{ value: boolean }>;
 
   stopEcg(): Promise<{ value: boolean }>;
+
+  stopAcc(): Promise<{ value: boolean }>;
 
   disconnectPolar(): Promise<{ value: boolean }>;
 
@@ -20,6 +24,11 @@ export interface PolarSdkPlugin {
 
   addListener(
     eventName: 'ecgData',
+    data: any,
+  ): Promise<PluginListenerHandle>;
+
+  addListener(
+    eventName: 'accData',
     data: any,
   ): Promise<PluginListenerHandle>;
 

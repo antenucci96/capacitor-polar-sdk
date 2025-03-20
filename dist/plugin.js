@@ -15,10 +15,16 @@ var capacitorPolarSdk = (function (exports, core) {
         streamEcg() {
             throw new Error('Method not implemented on web.');
         }
+        streamAcc() {
+            throw new Error('Method not implemented on web.');
+        }
         stopEcg() {
             throw new Error('Method not implemented on web.');
         }
         stopHR() {
+            throw new Error('Method not implemented on web.');
+        }
+        stopAcc() {
             throw new Error('Method not implemented on web.');
         }
         disconnectPolar() {

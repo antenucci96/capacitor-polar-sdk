@@ -11,10 +11,16 @@ export declare class PolarSdkWeb extends WebPlugin implements PolarSdkPlugin {
     streamEcg(): Promise<{
         value: boolean;
     }>;
+    streamAcc(): Promise<{
+        value: boolean;
+    }>;
     stopEcg(): Promise<{
         value: boolean;
     }>;
     stopHR(): Promise<{
+        value: boolean;
+    }>;
+    stopAcc(): Promise<{
         value: boolean;
     }>;
     disconnectPolar(): Promise<{

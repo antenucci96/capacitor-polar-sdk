@@ -36,6 +36,16 @@
         "slug": "streamecg"
       },
       {
+        "name": "streamAcc",
+        "signature": "() => Promise<{ value: boolean; }>",
+        "parameters": [],
+        "returns": "Promise<{ value: boolean; }>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "streamacc"
+      },
+      {
         "name": "stopHR",
         "signature": "() => Promise<{ value: boolean; }>",
         "parameters": [],
@@ -54,6 +64,16 @@
         "docs": "",
         "complexTypes": [],
         "slug": "stopecg"
+      },
+      {
+        "name": "stopAcc",
+        "signature": "() => Promise<{ value: boolean; }>",
+        "parameters": [],
+        "returns": "Promise<{ value: boolean; }>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "stopacc"
       },
       {
         "name": "disconnectPolar",
@@ -110,6 +130,29 @@
           "PluginListenerHandle"
         ],
         "slug": "addlistenerecgdata-"
+      },
+      {
+        "name": "addListener",
+        "signature": "(eventName: 'accData', data: any) => Promise<PluginListenerHandle>",
+        "parameters": [
+          {
+            "name": "eventName",
+            "docs": "",
+            "type": "'accData'"
+          },
+          {
+            "name": "data",
+            "docs": "",
+            "type": "any"
+          }
+        ],
+        "returns": "Promise<PluginListenerHandle>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [
+          "PluginListenerHandle"
+        ],
+        "slug": "addlisteneraccdata-"
       },
       {
         "name": "addListener",

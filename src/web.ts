@@ -15,11 +15,19 @@ export class PolarSdkWeb extends WebPlugin implements PolarSdkPlugin {
     throw new Error('Method not implemented on web.');
   }
 
+  streamAcc(): Promise<{ value: boolean }> {
+    throw new Error('Method not implemented on web.');
+  }
+
   stopEcg(): Promise<{ value: boolean }> {
     throw new Error('Method not implemented on web.');
   }
 
   stopHR(): Promise<{ value: boolean }> {
+    throw new Error('Method not implemented on web.');
+  }
+
+  stopAcc(): Promise<{ value: boolean }> {
     throw new Error('Method not implemented on web.');
   }
 

@@ -16,11 +16,14 @@ npx cap sync
 * [`connectPolar()`](#connectpolar)
 * [`streamHR()`](#streamhr)
 * [`streamEcg()`](#streamecg)
+* [`streamAcc()`](#streamacc)
 * [`stopHR()`](#stophr)
 * [`stopEcg()`](#stopecg)
+* [`stopAcc()`](#stopacc)
 * [`disconnectPolar()`](#disconnectpolar)
 * [`addListener('hrData', ...)`](#addlistenerhrdata-)
 * [`addListener('ecgData', ...)`](#addlistenerecgdata-)
+* [`addListener('accData', ...)`](#addlisteneraccdata-)
 * [`addListener('disconnected', ...)`](#addlistenerdisconnected-)
 * [`removeAllListeners()`](#removealllisteners)
 * [Interfaces](#interfaces)
@@ -63,6 +66,17 @@ streamEcg() => Promise<{ value: boolean; }>
 --------------------
 
 
+### streamAcc()
+
+```typescript
+streamAcc() => Promise<{ value: boolean; }>
+```
+
+**Returns:** <code>Promise&lt;{ value: boolean; }&gt;</code>
+
+--------------------
+
+
 ### stopHR()
 
 ```typescript
@@ -78,6 +92,17 @@ stopHR() => Promise<{ value: boolean; }>
 
 ```typescript
 stopEcg() => Promise<{ value: boolean; }>
+```
+
+**Returns:** <code>Promise&lt;{ value: boolean; }&gt;</code>
+
+--------------------
+
+
+### stopAcc()
+
+```typescript
+stopAcc() => Promise<{ value: boolean; }>
 ```
 
 **Returns:** <code>Promise&lt;{ value: boolean; }&gt;</code>
@@ -121,6 +146,22 @@ addListener(eventName: 'ecgData', data: any) => Promise<PluginListenerHandle>
 | Param           | Type                   |
 | --------------- | ---------------------- |
 | **`eventName`** | <code>'ecgData'</code> |
+| **`data`**      | <code>any</code>       |
+
+**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
+
+--------------------
+
+
+### addListener('accData', ...)
+
+```typescript
+addListener(eventName: 'accData', data: any) => Promise<PluginListenerHandle>
+```
+
+| Param           | Type                   |
+| --------------- | ---------------------- |
+| **`eventName`** | <code>'accData'</code> |
 | **`data`**      | <code>any</code>       |
 
 **Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>

@@ -20,6 +20,7 @@ import com.polar.androidcommunications.api.ble.model.DisInfo
 import com.polar.sdk.api.PolarBleApi
 import com.polar.sdk.api.PolarBleApiCallback
 import com.polar.sdk.api.PolarBleApiDefaultImpl
+import com.polar.sdk.api.model.PolarAccelerometerData
 import com.polar.sdk.api.model.PolarDeviceInfo
 import com.polar.sdk.api.model.PolarEcgData
 import com.polar.sdk.api.model.PolarHrData
@@ -42,6 +43,7 @@ const val ERROR_PERMISSIONS_DENIED = "permissions.notGranted"
 const val ERROR_CONNECTION_TIMED_OUT = "connection.timedOut"
 const val ERROR_STREAM_ECG_FAILED = "stream.ecg.failed"
 const val ERROR_STREAM_HR_FAILED = "stream.hr.failed"
+const val ERROR_STREAM_ACC_FAILED = "stream.acc.failed"
 
 @CapacitorPlugin(
     name = "PolarSdk",
@@ -88,6 +90,7 @@ class PolarSdkPlugin : Plugin() {
     private var hrDisposable: Disposable? = null
     private var autoConnectDisposable: Disposable? = null
     private var ecgDisposable: Disposable? = null
+    private var accDisposable: Disposable? = null
     private var deviceId = ""
     private var bluetoothAdapter: BluetoothAdapter? = null
     private var aliases: Array<String> = arrayOf()
@@ -317,6 +320,41 @@ class PolarSdkPlugin : Plugin() {
     }
 
     @PluginMethod
+    fun streamAcc(call: PluginCall) {
+        val isDisposed = accDisposable?.isDisposed ?: true
+        if (isDisposed) {
+            accDisposable = requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.ACC)
+                .flatMap { settings: PolarSensorSetting ->
+                    api.startAccStreaming(deviceId, settings)
+                }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                    { polarAccelerometerData: PolarAccelerometerData ->
+                        for (data in polarAccelerometerData.samples) {
+                            Log.d(TAG, "ACC    x: ${data.x} y: ${data.y} z: ${data.z} timeStamp: ${data.timeStamp}")
+                            val resData = JSObject()
+                            resData.put("x", data.x)
+                            resData.put("y", data.y)
+                            resData.put("z", data.z)
+                            resData.put("timestamp", data.timeStamp)
+                            notifyListeners("accData", resData)
+                        }
+                    },
+                    { error: Throwable ->
+                        Log.e(TAG, "ACC stream failed. Reason $error")
+                        call.reject(ERROR_STREAM_ACC_FAILED)
+                    },
+                    {
+                        Log.d(TAG, "ACC stream complete")
+                    }
+                )
+        } else {
+            accDisposable?.dispose()
+            call.reject("error", "ACC stream stopped")
+        }
+    }
+
+    @PluginMethod
     fun stopHR(call: PluginCall) {
         hrDisposable?.dispose()
         val result = JSObject()
@@ -327,6 +365,14 @@ class PolarSdkPlugin : Plugin() {
     @PluginMethod
     fun stopEcg(call: PluginCall) {
         ecgDisposable?.dispose()
+        val result = JSObject()
+        result.put("value", true)
+        call.resolve(result)
+    }
+
+    @PluginMethod
+    fun stopAcc(call: PluginCall) {
+        accDisposable?.dispose()
         val result = JSObject()
         result.put("value", true)
         call.resolve(result)
