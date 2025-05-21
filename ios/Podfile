@@ -1,0 +1,1 @@
+pod 'PolarBleSdk', :git => 'https://github.com/polarofficial/polar-ble-sdk.git'
