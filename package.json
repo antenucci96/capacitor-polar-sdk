@@ -13,7 +13,8 @@
     "ios/Sources",
     "ios/Tests",
     "Package.swift",
-    "CapacitorPolarSdk.podspec"
+    "CapacitorPolarSdk.podspec",
+    "Models"
   ],
   "author": "antenucci96",
   "license": "MIT",
