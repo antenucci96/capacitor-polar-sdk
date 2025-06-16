@@ -22,7 +22,7 @@ class PolarSdk : CAPPlugin, ObservableObject {
     )
     
     // TODO replace the device id with your device ID or use the auto connect to when connecting to device
-    private static let deviceId = "C015D22B"
+    private static let deviceId = ""
     
     @Published var isBluetoothOn: Bool = true
     @Published var isBroadcastListenOn: Bool = false
@@ -73,7 +73,7 @@ class PolarSdk : CAPPlugin, ObservableObject {
         api.logger = self
     }
     
-    func broadcastToggle() {
+    /*func broadcastToggle() {
         if isBroadcastListenOn == false {
             isBroadcastListenOn = true
             broadcastDisposable = api.startListenForPolarHrBroadcasts(nil)
@@ -112,12 +112,13 @@ class PolarSdk : CAPPlugin, ObservableObject {
                 NSLog("Failed to connect to \(deviceId). Reason \(err)")
             }
         }
-    }
+    }*/
     
-    func disconnectFromDevice() {
+  @objc func disconnectPolar(_ call: CAPPluginCall) {
         if case .connected(let deviceId) = deviceConnectionState {
             do {
                 try api.disconnectFromDevice(deviceId)
+                call.resolve(["value": true])
             } catch let err {
                 NSLog("Failed to disconnect from \(deviceId). Reason \(err)")
             }
@@ -126,17 +127,22 @@ class PolarSdk : CAPPlugin, ObservableObject {
     
     @objc func connectPolar(_ call: CAPPluginCall) {
         autoConnectDisposable?.dispose()
-        autoConnectDisposable = api.startAutoConnectToDevice(-55, service: nil, polarDeviceType: nil)
+        autoConnectDisposable = api.startAutoConnectToDevice(-60, service: nil, polarDeviceType: "H10")
             .subscribe{ e in
                 switch e {
                 case .completed:
                     NSLog("auto connect search complete")
+                    self.getOnlineStreamSettings(feature: PolarDeviceDataType.ecg)
+                    var result = JSObject()
+                    result["value"] = true
+                    call.resolve(result)
                 case .error(let err):
                     NSLog("auto connect failed: \(err)")
                 }
             }
     }
-    
+  
+  /*
     func startDevicesSearch() {
         searchDevicesTask = Task {
             await searchDevicesAsync()
@@ -173,8 +179,9 @@ class PolarSdk : CAPPlugin, ObservableObject {
                 self.deviceSearch.isSearching = DeviceSearchState.failed(error: deviceSearchFailed)
             }
         }
-    }
+    } */
     
+   
     func getOnlineStreamSettings(feature: PolarBleSdk.PolarDeviceDataType) {
         if case .connected(let deviceId) = deviceConnectionState {
             NSLog("Online stream settings fetch for \(feature)")
@@ -195,6 +202,8 @@ class PolarSdk : CAPPlugin, ObservableObject {
                         }
                         
                         self.onlineStreamSettings = RecordingSettings(feature: feature, settings: receivedSettings)
+                      
+                  
                         
                     case .failure(let err):
                         self.somethingFailed(text: "Online stream settings request failed: \(err)")
@@ -205,7 +214,8 @@ class PolarSdk : CAPPlugin, ObservableObject {
             NSLog("Online stream settings request failed. Device is not connected \(deviceConnectionState)")
         }
     }
-    
+      
+    /*
     func getOfflineRecordingSettings(feature: PolarBleSdk.PolarDeviceDataType) {
         if case .connected(let deviceId) = deviceConnectionState {
             NSLog("Offline recording settings fetch for \(feature)")
@@ -232,44 +242,22 @@ class PolarSdk : CAPPlugin, ObservableObject {
         } else {
             NSLog("Offline recording settings request failed. Device is not connected \(deviceConnectionState)")
         }
-    }
-    
-    func onlineStreamStart(feature: PolarDeviceDataType, settings: RecordingSettings? = nil) {
-        var logString:String = "Request \(feature) online stream start with settings: "
-        
-        var polarSensorSettings: [PolarSensorSetting.SettingType : UInt32] = [:]
-        settings?.settings.forEach {
-            polarSensorSettings[$0.type] = UInt32($0.values[0])
-            logString.append(" \($0.type) \($0.values[0])")
-        }
-        NSLog(logString)
-        
-        switch feature {
-        case .ecg:
-            ecgStreamStart(settings: PolarSensorSetting(polarSensorSettings))
-        case .acc:
-            accStreamStart(settings: PolarSensorSetting(polarSensorSettings))
-        case .magnetometer:
-            magStreamStart(settings: PolarSensorSetting(polarSensorSettings))
-        case .ppg:
-            ppgStreamStart(settings: PolarSensorSetting(polarSensorSettings))
-        case .gyro:
-            gyrStreamStart(settings: PolarSensorSetting(polarSensorSettings))
-        case .ppi:
-            ppiStreamStart()
-        case .hr:
-            hrStreamStart()
-        case .temperature: break
-          //do nothing
-        case .pressure: break
-          //do nothing
-        }
-    }
+    }*/
     
     func onlineStreamStop(feature: PolarBleSdk.PolarDeviceDataType) {
         onlineStreamingDisposables[feature]??.dispose()
     }
-    
+  
+    @objc func stopHR(_ call: CAPPluginCall) {
+      onlineStreamStop(feature: PolarBleSdk.PolarDeviceDataType.ecg)
+      call.resolve(["value": true])
+    }
+  
+    @objc func stopEcg(_ call: CAPPluginCall) {
+      onlineStreamStop(feature: PolarBleSdk.PolarDeviceDataType.hr)
+      call.resolve(["value": true])
+    }
+    /*
     func listOfflineRecordings() async {
         if case .connected(let deviceId) = deviceConnectionState {
             
@@ -465,50 +453,72 @@ class PolarSdk : CAPPlugin, ObservableObject {
         } else {
             return false
         }
-    }
+    }*/
     
-    func ecgStreamStart(settings: PolarBleSdk.PolarSensorSetting) {
+      @objc func streamEcg(_ call: CAPPluginCall) {
+        Task {
+          NSLog("aaaaaaaaaaaaaaaaaaaaaaaaaa")
+          await self.setTime()
+        }
+        
+        
         if case .connected(let deviceId) = deviceConnectionState {
-            
+        
             Task { @MainActor in
                 self.onlineStreamingFeature.isStreaming[.ecg] = OnlineStreamingState.inProgress
             }
             
-            let logFile: (url: URL, fileHandle: FileHandle)? = openOnlineStreamLogFile(type: .ecg)
-            
-            onlineStreamingDisposables[.ecg] = api.startEcgStreaming(deviceId, settings: settings)
+            //let logFile: (url: URL, fileHandle: FileHandle)? = openOnlineStreamLogFile(type: .ecg)
+
+          
+          
+          
+          let ecgSettings = PolarSensorSetting([
+              .sampleRate: 130,
+              .resolution: 14
+          ])
+        
+          onlineStreamingDisposables[.ecg] = api.startEcgStreaming(deviceId, settings: ecgSettings)
                 .do(onDispose: {
+                  /*
                     if let fileHandle = logFile?.fileHandle {
                         self.closeOnlineStreamLogFile(fileHandle)
                     }
                     Task { @MainActor in
                         self.onlineStreamingFeature.isStreaming[.ecg] = OnlineStreamingState.success(url: logFile?.url)
                     }
+                   */
                 })
                 .subscribe { e in
                     switch e {
                     case .next(let data):
-                        if let fileHandle = logFile?.fileHandle {
+                        /*if let fileHandle = logFile?.fileHandle {
                             self.writeOnlineStreamLogFile(fileHandle, data)
-                        }
+                        }*/
                         
                         for item in data.samples {
-                            NSLog("ECG    µV: \(item.voltage) timeStamp: \(item.timeStamp)")
+                          var data = JSObject()
+                          data["yV"] = String(item.voltage)
+                          data["timestamp"] = String(item.timeStamp)
+                          self.notifyListeners("ecgData", data: data)
+                          NSLog("ECG    µV: \(item.voltage) timeStamp: \(item.timeStamp)")
                         }
                     case .error(let err):
                         NSLog("ECG stream failed: \(err)")
-                        if let fileHandle = logFile?.fileHandle {
+                        call.reject("stream.ecg.failed")
+                        /*if let fileHandle = logFile?.fileHandle {
                             self.writeErrorOnlineStreamLogFile(fileHandle, err)
-                        }
+                        }*/
                     case .completed:
                         NSLog("ECG stream completed")
+                        call.resolve(["value": true])
                     }
                 }
         } else {
             NSLog("Device is not connected \(deviceConnectionState)")
         }
     }
-    
+  /*
     func accStreamStart(settings: PolarBleSdk.PolarSensorSetting) {
         if case .connected(let deviceId) = deviceConnectionState {
             
@@ -718,47 +728,53 @@ class PolarSdk : CAPPlugin, ObservableObject {
             NSLog("Device is not connected \(deviceConnectionState)")
         }
     }
-    
-    func hrStreamStart() {
+    */
+    @objc func streamHR(_ call: CAPPluginCall) {
         if case .connected(let deviceId) = deviceConnectionState {
             
             Task { @MainActor in
                 self.onlineStreamingFeature.isStreaming[.hr] = OnlineStreamingState.inProgress
             }
-            
-            let logFile: (url: URL, fileHandle: FileHandle)? = openOnlineStreamLogFile(type: .hr)
-            
+          
             onlineStreamingDisposables[.hr] = api.startHrStreaming(deviceId)
                 .do(onDispose: {
-                    if let fileHandle = logFile?.fileHandle {
+                    /*if let fileHandle = logFile?.fileHandle {
                         self.closeOnlineStreamLogFile(fileHandle)
                     }
                     Task { @MainActor in
                         self.onlineStreamingFeature.isStreaming[.hr] = OnlineStreamingState.success(url: logFile?.url)
-                    }
+                    }*/
                 })
                 .subscribe{ e in
                     switch e {
-                    case .next(let data):
-                        if let fileHandle = logFile?.fileHandle {
-                            self.writeOnlineStreamLogFile(fileHandle, data)
-                        }
-                        
-                        NSLog("HR    BPM: \(data[0].hr) rrs: \(data[0].rrsMs) rrAvailable: \(data[0].rrAvailable) contact status: \(data[0].contactStatus) contact supported: \(data[0].contactStatusSupported)")
+                    case .next(let hrData):
+                      NSLog("hrData: \(hrData)")
+                        /*if let fileHandle = logFile?.fileHandle {
+                            self.writeOnlineStreamLogFile(fileHandle, hrData)
+                        }*/
+                        var data = JSObject()
+                        data["bpm"] = String(Int(hrData[0].hr))
+                        data["rrs"] = hrData[0].rrsMs
+                        data["timestamp"] = Date().timeIntervalSince1970
+                        NSLog("Sending HR data: \(data)")
+
+                        self.notifyListeners("hrData", data: data)
                     case .error(let err):
                         NSLog("Hr stream failed: \(err)")
-                        if let fileHandle = logFile?.fileHandle {
+                        call.reject("stream.hr.failed")
+                        /*if let fileHandle = logFile?.fileHandle {
                             self.writeErrorOnlineStreamLogFile(fileHandle, err)
-                        }
+                        }*/
                     case .completed:
                         NSLog("Hr stream completed")
+                        call.resolve(["value": true])
                     }
                 }
         } else {
             NSLog("Device is not connected \(deviceConnectionState)")
         }
     }
-    
+    /*
     func sdkModeToggle() {
         if case .connected(let deviceId) = deviceConnectionState {
             if self.sdkModeFeature.isEnabled {
@@ -945,13 +961,13 @@ class PolarSdk : CAPPlugin, ObservableObject {
                 }.disposed(by: disposeBag)
         }
     }
-    
+    */
     func setTime() async {
         if case .connected(let deviceId) = deviceConnectionState {
             do {
                 let time = Date()
-                let timeZone = TimeZone.current
-                
+                let timeZone = TimeZone(secondsFromGMT: 0)!
+                NSLog(deviceId)
                 let _: Void = try await api.setLocalTime(deviceId, time: time, zone: timeZone).value
                 Task { @MainActor in
                     let formatter = DateFormatter()
@@ -993,6 +1009,7 @@ class PolarSdk : CAPPlugin, ObservableObject {
         }
     }
     
+  /*
     func getDiskSpace() async {
         if case .connected(let deviceId) = deviceConnectionState {
             do {
@@ -1051,13 +1068,13 @@ class PolarSdk : CAPPlugin, ObservableObject {
             }
         }
     }
-
+    */
     
     private func somethingFailed(text: String) {
         self.generalMessage = Message(text: "Error: \(text)")
         NSLog("Error \(text)")
     }
-    
+    /*
     private func dataHeaderString(_ type: PolarDeviceDataType) -> String {
         var result = ""
         switch type {
@@ -1175,6 +1192,7 @@ class PolarSdk : CAPPlugin, ObservableObject {
             }
         }
     }
+     */
 }
 
 fileprivate extension PolarDeviceDataType {
@@ -1250,6 +1268,7 @@ extension PolarSdk : PolarBleApiObserver {
             self.batteryStatusFeature = BatteryStatusFeature()
             self.ledAnimationFeature = LedAnimationFeature()
         }
+        notifyListeners("disconnected", data: [:])
     }
 }
 
@@ -1310,7 +1329,7 @@ extension PolarSdk : PolarBleApiDeviceFeaturesObserver {
             }
             
             Task {
-                getH10RecordingStatus()
+                //getH10RecordingStatus()
             }
             
             break
@@ -1320,7 +1339,7 @@ extension PolarSdk : PolarBleApiDeviceFeaturesObserver {
                 self.sdkModeFeature.isSupported = true
             }
             Task {
-                await getSdkModeStatus()
+                //await getSdkModeStatus()
             }
             break
             
@@ -1348,7 +1367,7 @@ extension PolarSdk : PolarBleApiDeviceFeaturesObserver {
                 self.offlineRecordingFeature.isSupported = true
             }
             Task {
-                await getOfflineRecordingStatus()
+                //await getOfflineRecordingStatus()
             }
             break
     
@@ -1357,7 +1376,7 @@ extension PolarSdk : PolarBleApiDeviceFeaturesObserver {
                 self.ledAnimationFeature.isSupported = true
             }
             Task {
-                await getSdkModeStatus()
+                //await getSdkModeStatus()
             }
             break
         case .feature_polar_firmware_update: break

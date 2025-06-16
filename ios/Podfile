@@ -1,1 +1,1 @@
-pod 'PolarBleSdk', :git => 'https://github.com/polarofficial/polar-ble-sdk.git'
+pod 'PolarBleSdk', :git => 'https://github.com/polarofficial/polar-ble-sdk.git', :tag => '5.9.0'
