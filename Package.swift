@@ -10,8 +10,8 @@ let package = Package(
             targets: ["PolarSdkPlugin"])
     ],
     dependencies: [
-        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", branch: "main")
-            .package(name: "PolarBleSdk", url: "https://github.com/polarofficial/polar-ble-sdk.git", .upToNextMajor(from: "5.0.0"))
+        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", branch: "main"),
+            .package( url: "https://github.com/polarofficial/polar-ble-sdk.git", exact: "5.9.0")
 
     ],
     targets: [
