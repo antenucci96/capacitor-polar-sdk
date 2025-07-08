@@ -754,8 +754,8 @@ class PolarSdk : CAPPlugin, ObservableObject {
                         }*/
                         var data = JSObject()
                         data["bpm"] = String(Int(hrData[0].hr))
-                        data["rrs"] = hrData[0].rrsMs
-                        data["timestamp"] = Int64(Date().timeIntervalSince1970 * 1000)
+                        data["rrs"] = hrData[0].rrsMs as [JSValue]
+                        data["timestamp"] = Int64(Date().timeIntervalSince1970 * 1000) as any JSValue
                         NSLog("Sending HR data: \(data)")
 
                         self.notifyListeners("hrData", data: data)
