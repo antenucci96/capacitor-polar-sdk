@@ -249,12 +249,12 @@ class PolarSdk : CAPPlugin, ObservableObject {
     }
   
     @objc func stopHR(_ call: CAPPluginCall) {
-      onlineStreamStop(feature: PolarBleSdk.PolarDeviceDataType.ecg)
+      onlineStreamStop(feature: PolarBleSdk.PolarDeviceDataType.hr)
       call.resolve(["value": true])
     }
   
     @objc func stopEcg(_ call: CAPPluginCall) {
-      onlineStreamStop(feature: PolarBleSdk.PolarDeviceDataType.hr)
+      onlineStreamStop(feature: PolarBleSdk.PolarDeviceDataType.ecg)
       call.resolve(["value": true])
     }
     /*
